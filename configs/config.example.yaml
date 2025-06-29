@@ -1,0 +1,20 @@
+telegram:
+  api_id: "你的API_ID"
+  api_hash: "你的API_HASH"
+  session_file: "session.json"
+  device_model: "Desktop"
+  system_version: "Windows 10"
+  app_version: "1.0.0"
+
+database:
+  type: "sqlite"
+  path: "tgchannel.db"
+
+logging:
+  level: "info"
+  file: "tgchannel.log"
+
+scraper:
+  batch_size: 100
+  delay_between_requests: 1
+  max_retries: 3 

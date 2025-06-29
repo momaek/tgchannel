@@ -30,3 +30,14 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# tgchannel specific files
+tgchannel
+session.json
+tgchannel.db
+tgchannel.log
+configs/config.yaml
+
+# OS specific files
+.DS_Store
+Thumbs.db
