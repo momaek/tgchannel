@@ -78,7 +78,7 @@ func subscribe() error {
 	ctx := context.Background()
 	err = client.Run(ctx, func(ctx context.Context) error {
 		// 创建爬虫实例
-		scraperClient := scraper.NewScraper(db, client.API())
+		scraperClient := scraper.NewScraper(db, client.API(), &config.Scraper)
 
 		// 获取频道信息
 		channel, err := scraperClient.FetchChannelInfo(ctx, channelUsername)

@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	fetchChannelUsername string
-	fetchLimit           int
+	fetchChannelID   int64
+	fetchChannelName string
+	fetchLimit       int
 )
 
 // fetchCmd represents the fetch command
@@ -23,8 +24,14 @@ var fetchCmd = &cobra.Command{
 	Short: "抓取 Channel 历史消息",
 	Long: `抓取指定 Channel 的历史消息。
 
+可以通过 Channel ID 或用户名指定频道，推荐使用 Channel ID。
 可以指定抓取的消息数量，默认抓取最新的 100 条消息。
-消息会被保存到数据库中供后续分析使用。`,
+消息会被保存到数据库中供后续分析使用。
+
+示例:
+  tgchannel fetch --id 1234567890
+  tgchannel fetch --name @channel_name
+  tgchannel fetch --id 1234567890 --limit 500`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := fetch(); err != nil {
 			log.Fatalf("抓取失败: %v", err)
@@ -36,12 +43,20 @@ func init() {
 	rootCmd.AddCommand(fetchCmd)
 
 	// 添加标志
-	fetchCmd.Flags().StringVarP(&fetchChannelUsername, "channel", "c", "", "Channel 用户名 (例如: @channel_name)")
+	fetchCmd.Flags().Int64VarP(&fetchChannelID, "id", "i", 0, "Channel ID (推荐使用)")
+	fetchCmd.Flags().StringVarP(&fetchChannelName, "name", "n", "", "Channel 用户名 (例如: @channel_name)")
 	fetchCmd.Flags().IntVarP(&fetchLimit, "limit", "l", 100, "抓取消息数量")
-	fetchCmd.MarkFlagRequired("channel")
+
+	// 至少需要指定 ID 或用户名之一
+	fetchCmd.MarkFlagsMutuallyExclusive("id", "name")
 }
 
 func fetch() error {
+	// 检查参数
+	if fetchChannelID == 0 && fetchChannelName == "" {
+		return fmt.Errorf("请指定 Channel ID (--id) 或用户名 (--name)")
+	}
+
 	// 初始化数据库
 	db, err := database.NewDatabase(config.Database.Path)
 	if err != nil {
@@ -63,16 +78,23 @@ func fetch() error {
 	ctx := context.Background()
 	err = client.Run(ctx, func(ctx context.Context) error {
 		// 创建爬虫实例
-		scraperClient := scraper.NewScraper(db, client.API())
+		scraperClient := scraper.NewScraper(db, client.API(), &config.Scraper)
 
 		// 抓取历史消息
-		log.Printf("开始抓取频道 %s 的历史消息，限制 %d 条...", fetchChannelUsername, fetchLimit)
-
-		if err := scraperClient.FetchChannelHistory(ctx, fetchChannelUsername, fetchLimit); err != nil {
-			return fmt.Errorf("抓取历史消息失败: %w", err)
+		if fetchChannelID != 0 {
+			log.Printf("开始抓取频道 ID %d 的历史消息，限制 %d 条...", fetchChannelID, fetchLimit)
+			if err := scraperClient.FetchChannelHistoryByID(ctx, fetchChannelID, fetchLimit); err != nil {
+				return fmt.Errorf("抓取历史消息失败: %w", err)
+			}
+			log.Printf("频道 ID %d 的历史消息抓取完成", fetchChannelID)
+		} else {
+			log.Printf("开始抓取频道 %s 的历史消息，限制 %d 条...", fetchChannelName, fetchLimit)
+			if err := scraperClient.FetchChannelHistory(ctx, fetchChannelName, fetchLimit); err != nil {
+				return fmt.Errorf("抓取历史消息失败: %w", err)
+			}
+			log.Printf("频道 %s 的历史消息抓取完成", fetchChannelName)
 		}
 
-		log.Printf("频道 %s 的历史消息抓取完成", fetchChannelUsername)
 		return nil
 	})
 

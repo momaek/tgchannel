@@ -55,9 +55,19 @@ channels:
 	@go run main.go channels
 
 # 抓取消息
-fetch: build
-	@echo "抓取频道消息..."
-	./tgchannel fetch --channel @example --limit 100
+fetch:
+	@echo "抓取 Channel 历史消息..."
+	@if [ -z "$(CHANNEL_ID)" ] && [ -z "$(CHANNEL_NAME)" ]; then \
+		echo "请指定 Channel ID 或用户名"; \
+		echo "示例: make fetch CHANNEL_ID=1234567890"; \
+		echo "示例: make fetch CHANNEL_NAME=@channel_name"; \
+		exit 1; \
+	fi
+	@if [ -n "$(CHANNEL_ID)" ]; then \
+		go run main.go fetch --id $(CHANNEL_ID) --limit $(or $(LIMIT),100); \
+	else \
+		go run main.go fetch --name $(CHANNEL_NAME) --limit $(or $(LIMIT),100); \
+	fi
 
 # 启动服务
 serve: build

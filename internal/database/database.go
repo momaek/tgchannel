@@ -166,6 +166,22 @@ func (d *Database) GetChannelByUsername(username string) (*models.Channel, error
 	return channel, nil
 }
 
+// GetChannelByTelegramID 根据 Telegram ID 获取频道
+func (d *Database) GetChannelByTelegramID(telegramID int64) (*models.Channel, error) {
+	query := `SELECT id, telegram_id, username, title, description, member_count, 
+			  is_active, created_at, updated_at FROM channels WHERE telegram_id = ?`
+	channel := &models.Channel{}
+	err := d.db.QueryRow(query, telegramID).Scan(
+		&channel.ID, &channel.TelegramID, &channel.Username, &channel.Title,
+		&channel.Description, &channel.MemberCount, &channel.IsActive,
+		&channel.CreatedAt, &channel.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get channel: %w", err)
+	}
+	return channel, nil
+}
+
 // CreateSubscription 创建订阅
 func (d *Database) CreateSubscription(subscription *models.Subscription) error {
 	query := `INSERT INTO subscriptions (user_id, channel_id) VALUES (?, ?)`
@@ -273,6 +289,53 @@ func (d *Database) GetChannelMessages(channelID int64, limit, offset int) ([]*mo
 	}
 
 	return messages, nil
+}
+
+// GetAllMessages 获取所有消息
+func (d *Database) GetAllMessages(limit, offset int) ([]*models.Message, error) {
+	query := `SELECT id, telegram_id, channel_id, sender_id, sender_name, text, media_type, media_url, 
+			  views, forwards, replies, date, created_at, updated_at 
+			  FROM messages 
+			  ORDER BY date DESC 
+			  LIMIT ? OFFSET ?`
+
+	rows, err := d.db.Query(query, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query messages: %w", err)
+	}
+	defer rows.Close()
+
+	var messages []*models.Message
+	for rows.Next() {
+		msg := &models.Message{}
+		err := rows.Scan(
+			&msg.ID, &msg.TelegramID, &msg.ChannelID, &msg.SenderID, &msg.SenderName,
+			&msg.Text, &msg.MediaType, &msg.MediaURL, &msg.Views, &msg.Forwards,
+			&msg.Replies, &msg.Date, &msg.CreatedAt, &msg.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan message: %w", err)
+		}
+		messages = append(messages, msg)
+	}
+
+	return messages, nil
+}
+
+// GetChannelByID 根据 ID 获取频道
+func (d *Database) GetChannelByID(channelID int64) (*models.Channel, error) {
+	query := `SELECT id, telegram_id, username, title, description, member_count, 
+			  is_active, created_at, updated_at FROM channels WHERE id = ?`
+	channel := &models.Channel{}
+	err := d.db.QueryRow(query, channelID).Scan(
+		&channel.ID, &channel.TelegramID, &channel.Username, &channel.Title,
+		&channel.Description, &channel.MemberCount, &channel.IsActive,
+		&channel.CreatedAt, &channel.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get channel: %w", err)
+	}
+	return channel, nil
 }
 
 // Close 关闭数据库连接

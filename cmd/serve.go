@@ -69,17 +69,13 @@ func serve() error {
 	// 连接到 Telegram
 	err = client.Run(ctx, func(ctx context.Context) error {
 		// 创建爬虫实例
-		scraperClient := scraper.NewScraper(db, client.API())
+		scraperClient := scraper.NewScraper(db, client.API(), &config.Scraper)
 
 		log.Println("启动监听服务...")
 		log.Println("按 Ctrl+C 停止服务")
 
 		// 开始监听更新
-		if err := scraperClient.ListenForUpdates(ctx); err != nil {
-			return fmt.Errorf("监听更新失败: %w", err)
-		}
-
-		return nil
+		return scraperClient.ListenForUpdates(ctx)
 	})
 
 	if err != nil {

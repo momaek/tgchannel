@@ -73,7 +73,4 @@ func initConfig() {
 		os.Exit(1)
 	}
 
-	// 添加调试信息
-	fmt.Fprintf(os.Stderr, "配置解析结果 - API ID: '%s', API Hash: '%s'\n",
-		config.Telegram.APIID, config.Telegram.APIHash)
 }

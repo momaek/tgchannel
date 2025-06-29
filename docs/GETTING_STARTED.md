@@ -71,6 +71,24 @@ go run main.go fetch --channel @channel_name --limit 100
 - `--channel`: Channel 用户名（必需）
 - `--limit`: 抓取消息数量（可选，默认 100）
 
+### 5. 抓取历史消息
+```bash
+# 使用 Channel ID 抓取（推荐）
+go run main.go fetch --channel @channel_name --limit 500 --channel_id 1234567890
+
+# 使用用户名抓取
+go run main.go fetch --channel @channel_name --limit 500 --channel_name @channel_username
+
+# 指定抓取数量
+go run main.go fetch --channel @channel_name --limit 500 --channel_id 1234567890
+```
+
+**分页抓取说明**：
+- 系统会自动进行分页抓取，避免被 Telegram 限流
+- 每次请求 100 条消息（可在配置文件中调整）
+- 请求间隔 2 秒（可在配置文件中调整）
+- 支持抓取大量历史消息（如 10000 条）
+
 ## 7. 列出订阅的 Channel
 
 查看指定用户订阅的所有 Channel：
@@ -187,12 +205,18 @@ make channels
 
 ### 5. 抓取历史消息
 ```bash
-# 抓取指定频道的历史消息
-make fetch CHANNEL=@channel_username
+# 使用 Channel ID 抓取（推荐）
+make fetch CHANNEL_ID=1234567890
+
+# 使用用户名抓取
+make fetch CHANNEL_NAME=@channel_username
+
+# 指定抓取数量
+make fetch CHANNEL_ID=1234567890 LIMIT=500
 ```
 
 ### 6. 启动监听服务
 ```bash
 # 启动服务监听频道更新
 make serve
-``` 
+```

@@ -15,6 +15,13 @@ logging:
   file: "tgchannel.log"
 
 scraper:
+  # 每次请求的消息数量，建议设置为 50-200 之间
+  # 较小的值可以减少被限流的风险，但会增加请求次数
   batch_size: 100
-  delay_between_requests: 1
+  
+  # 请求之间的间隔时间（秒），建议设置为 1-5 秒
+  # 较大的间隔可以避免被 Telegram 的 QoS 限制
+  delay_between_requests: 2
+  
+  # 最大重试次数，当请求失败时的重试次数
   max_retries: 3 
