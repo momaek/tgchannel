@@ -74,6 +74,15 @@ serve: build
 	@echo "启动监听服务..."
 	./tgchannel serve
 
+# 查看抓取的消息
+messages:
+	@echo "查看抓取的消息..."
+	@if [ -n "$(LIMIT)" ]; then \
+		go run main.go messages --limit $(LIMIT); \
+	else \
+		go run main.go messages; \
+	fi
+
 # 显示帮助信息
 help:
 	@echo "tgchannel Makefile 命令:"
@@ -88,6 +97,7 @@ help:
 	@echo "  list      - 列出订阅的 Channel"
 	@echo "  fetch     - 抓取频道消息"
 	@echo "  serve     - 启动监听服务"
+	@echo "  messages  - 查看抓取的消息"
 	@echo "  help      - 显示此帮助信息"
 	@echo ""
 	@echo "使用示例:"
@@ -96,4 +106,5 @@ help:
 	@echo "  make subscribe # 订阅频道"
 	@echo "  make list      # 列出订阅"
 	@echo "  make fetch     # 抓取消息"
-	@echo "  make serve     # 启动服务" 
+	@echo "  make serve     # 启动服务"
+	@echo "  make messages  # 查看抓取的消息" 
